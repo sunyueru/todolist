@@ -1,0 +1,71 @@
+一、思路分析
+   首先是搭建html文件。其中task-list和detail都是隐藏的。
+   js主要分为以下几个大部分：
+   ①首先就是点击submit的时候，需要执行以下操作：
+     获取input框内的元素；
+     更新task—list的值；
+     更新localstorage；
+     然后把元素渲染到下面的的task-list。
+     其中每更新一次localstorage就需要重新渲染一次dom，所以可以写在一个小函数里
+   ②点击删除之后，需要执行以下操作：
+     先找到点击的是哪一个item，这里需要在对应的html里面利用data-index绑定index；
+     然后把对应的index的item从task-list里面删除；
+     更新task-list的值；
+     重新渲染对应的dom。
+   ③点击详细之后，需要执行以下操作：
+     找到对应的index
+     渲染detail的dom；
+     把detailshow出来。
+     此外，
+     还需要完成detail里面的一些事件。
+     因为对应的内容是动态渲染的，所以里面的sbumit等也需要在渲染之后才可以取到。
+     所以就还在渲染的那个函数里面取到对应的元素
+     然后完成：
+     双击标题切换成input，
+     点击detail里面的提交更新（追加）data，把后面写入的content，desc，date都追加到对应的task-item内。
+   ④点击每一个item前面的checkbox之后切换是否完成的状态。
+      这里我是给checkbox绑定事件，然后利用is（：checked）取到是否点击的状态，
+      把这个状态作为一组键值追加到item数据内。
+      然后要改变一下渲染函数。就是分为完成和未完成两个。如果是完成的就追加到后面，如果是更新新的任务就
+      prepend到最前。
+      但是要注意对应的index不能改变，因为变了之后点击删除和详细就崩了。
+      反正render-item-list里面很多细节，踩了很多坑才理解了为什么那样写。
+  ⑤设置定时提醒的功能
+      先取到当前的时间，然后和输入的时间对比，如果是差值超过1就是把informed改变为真，同时提醒一下。
+      也就是把msg的内容show出来。
+  ⑥ 还有就是每一个render函数里面的那个拼接字符串里面的相关变量的使用。例如data.complete,data.remind什么的。
+     这种做法要学习一下啊。
+***********************************************************************************************
+         function render_task_list(){
+	    var $task_list = $('.task-list');
+	    $task_list.html('');
+	    var complete_items = [];
+	    for (var i = 0; i < task_list.length; i++) {
+	      var item = task_list[i];
+	      if (item && item.complete){
+	      	// i每次都改变，但是有时候并没有赋值。
+	      	 complete_items[i] = item;
+	         //console.log(complete_items[i]);
+
+	      } 
+	      else{
+	      	var $task = render_task_item(item, i);
+	        $task_list.prepend($task);
+	      }
+	    }
+	    // 没赋值的都是空的
+	    //console.log(complete_items);
+//这里打印出来的大多数是前面都是空，后面才有值的一个数组。
+因为只有item的complete变量为真的时候，conplete-item【i】里面才会有数据
+其他情况for循环在继续走，i在加，但是没有复制。所以之前想的index会不会在重新渲染complete-item的时候错是多虑了
+	    for (var j = 0; j < complete_items.length; j++) {
+	      $task = render_task_item(complete_items[j], j);
+	      // 下面这句必须要，因为conplete_items里面很多空的
+	      if (!$task) continue;
+	      $task_list.append($task);
+	      //$task.addClass('completed');
+	    }
+	 }
+     
+  
+   

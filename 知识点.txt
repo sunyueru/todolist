@@ -1,0 +1,66 @@
+一、为什么最开始是;(function(){ })();
+    主要是最前面的逗号。这个是防止在引入多个js库之后，前面的没有结束而出现奇奇怪怪的错误
+二、利用store.js存储数据
+   
+   store.set('key',value);
+   store.get(key)
+三、“data-”自定义属性
+   http://www.cnblogs.com/susanws/p/5527187.html
+   如何在js中获取自定义属性
+   getAttribute ( 'data-uname' )或者是element.dataset.uname
+   如何在jq中获取自定义属性
+   var index=$item.data('index');
+***************************************************************************************************
+重点来了，在task删除的那一小节里面。一开始怎么也不理解为什么jq不可以自动绑定数据变化，不能监听
+也就是最初为什么只删除了一个item之后再点击删除就没有用了。看了好久的课后答疑勉强是懂了。
+我的理解就是，在dom变化了之后，需要重新绑定on。因为on是添加在所有的item上的delete按钮的。删除了之后，jquery不能自动
+绑定数据变化，需要手动再绑定监听事件。所以，需要把监听事件封装成函数，然后再在每次的render—list之后（也就是dom变化后）
+再执行一次这个监听事件的函数。
+具体的做法就是：
+	function render_task_list(){
+		//console.log("sun");
+		var $task_list=$('.task-list');
+		$task_list.html('');
+		for(var i=0;i<task_list.length;i++){
+			var $task=render_task_item(task_list[i],i);
+			$('.task-list').append($task);
+		}
+		// 添加完了之后再取到delete按钮
+		// 注意这个$delete_task是全局变量，这里仅仅是赋值，不要再前面加var，不然就是局部变量了，在下面的函数里
+		// 就会undefined
+		 $delete_task=$('.action.delete');
+		//console.log($delete_task);
+		// dom变化之后动态加上监听事件
+		// listen_delete_task();
+	}
+	// 吧delete这个监听事件封装，因为后面没更新一次dom之后都需要动态再监听一次事件。jq本身不会自动绑定数据变化
+	// function listen_delete_task(){
+	// 	$delete_task.on('click',function(){
+	// 	//console.log('sun');
+	// 	var $this=$(this);
+	// 	// 获取delete按钮的父元素的父元素，也就是task-item
+	// 	var $item=$this.parent().parent();
+	// 	//console.log($item);
+	// 	//js里面获取data值是dataset.index,jq 就是data("")
+	// 	//console.log($item.data('index'));
+	// 	var index=$item.data('index');
+	// 	var temp=confirm("确定删除吗？")
+	// 	temp?delete_task(index):null;
+	// })
+	// }
+另外，网上百度了一下，还有一种更简单的就是，直接把监听事件绑定在document上面，这样就可以动态的改变dom
+具体做法：
+// 或者给整个document绑定事件。
+	$(document).on('click','.action.delete',function(){
+			//console.log('sun');
+		var $this=$(this);
+		// 获取delete按钮的父元素的父元素，也就是task-item
+		var $item=$this.parent().parent();
+		//console.log($item);
+		//js里面获取data值是dataset.index,jq 就是data("")
+		//console.log($item.data('index'));
+		var index=$item.data('index');
+		var temp=confirm("确定删除吗？")
+		temp?delete_task(index):null;
+	})
+相关资料可以参考：http://www.365mini.com/page/jquery-on.html
